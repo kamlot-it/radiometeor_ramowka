@@ -96,7 +96,35 @@ class GoogleSheetService {
       }
     }
 
-    return programs;
+    // Konsolidacja kolejnych identycznych wpisów na wypadek drobnych różnic w danych
+    List<Program> merged = [];
+    Program? last;
+    String normalize(String input) =>
+        input.toLowerCase().trim().replaceAll(RegExp(r'[–-]'), '-');
+
+    for (final p in programs) {
+      if (last != null &&
+          last.day == p.day &&
+          normalize(last.title) == normalize(p.title) &&
+          (last.hosts ?? '').trim() == (p.hosts ?? '').trim() &&
+          last.endTime == p.startTime) {
+        last = Program(
+          day: last.day,
+          startTime: last.startTime,
+          endTime: p.endTime,
+          title: last.title,
+          hosts: last.hosts,
+          categoryName: last.categoryName,
+          categoryColorHex: last.categoryColorHex,
+        );
+        merged[merged.length - 1] = last;
+      } else {
+        merged.add(p);
+        last = p;
+      }
+    }
+
+    return merged;
   }
 
   static Future<bool> testConnection() async {
