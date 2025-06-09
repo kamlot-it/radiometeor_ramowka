@@ -124,26 +124,10 @@ class GoogleSheetService {
       }
     }
 
-    // Kolejny krok łączy identyczne wpisy pojawiające się jeden po drugim
-    // niezależnie od dnia tygodnia (np. gdy program jest taki sam każdego dnia
-    // o tej samej godzinie). Dzięki temu w UI nie pojawia się kilka kart z
-    // tym samym tytułem i godziną pod rząd.
-    final deduped = <Program>[];
-    Program? lastGlobal;
-    for (final p in merged) {
-      if (lastGlobal != null &&
-          normalize(lastGlobal.title) == normalize(p.title) &&
-          (lastGlobal.hosts ?? '').trim() == (p.hosts ?? '').trim() &&
-          lastGlobal.startTime == p.startTime &&
-          lastGlobal.endTime == p.endTime) {
-        // Pomijamy powtarzające się wpisy
-        continue;
-      }
-      deduped.add(p);
-      lastGlobal = p;
-    }
-
-    return deduped;
+    // Zwracamy wynik po konsolidacji w obrębie pojedynczego dnia.
+    // Nie usuwamy identycznych wpisów pomiędzy różnymi dniami tygodnia,
+    // aby każdy dzień zachował swoją odrębną ramówkę.
+    return merged;
   }
 
   static Future<bool> testConnection() async {
