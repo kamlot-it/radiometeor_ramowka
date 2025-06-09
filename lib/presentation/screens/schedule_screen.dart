@@ -14,7 +14,8 @@ class ScheduleScreen extends StatefulWidget {
   State<ScheduleScreen> createState() => _ScheduleScreenState();
 }
 
-class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStateMixin {
+class _ScheduleScreenState extends State<ScheduleScreen>
+    with TickerProviderStateMixin {
   late AnimationController _refreshController;
   late ScrollController _scrollController; // 🔥 DODANY SCROLL CONTROLLER
 
@@ -52,8 +53,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
       if (!_scrollController.hasClients) return;
 
       // Znajdź indeks aktualnie granego programu
-      final liveIndex =
-          programs.indexWhere((program) => provider.isProgramCurrentlyPlaying(program));
+      final liveIndex = programs.indexWhere(
+        (program) => provider.isProgramCurrentlyPlaying(program),
+      );
 
       if (liveIndex != -1) {
         debugPrint('🎯 Przewijam do Live programu na pozycji: $liveIndex');
@@ -64,7 +66,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
 
         // Oblicz pozycję scroll - wyśrodkuj live program
         final screenHeight = MediaQuery.of(context).size.height;
-        final targetPosition = (liveIndex * itemHeight) + headerHeight - (screenHeight / 3);
+        final targetPosition =
+            (liveIndex * itemHeight) + headerHeight - (screenHeight / 3);
 
         // Animowane przewijanie do live programu
         _scrollController.animateTo(
@@ -140,7 +143,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
 
           case ScheduleState.loaded:
           case ScheduleState.refreshing:
-          // 🔥 AUTO-SCROLL PO ZAŁADOWANIU DANYCH
+            // 🔥 AUTO-SCROLL PO ZAŁADOWANIU DANYCH
             if (provider.programsForSelectedDay.isNotEmpty) {
               _scrollToLiveProgram(provider);
             }
@@ -165,10 +168,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
           SizedBox(height: 16),
           Text(
             'Ładowanie ramówki...',
-            style: TextStyle(
-              fontSize: 16,
-              color: ThemeConfig.mediumGrey,
-            ),
+            style: TextStyle(fontSize: 16, color: ThemeConfig.mediumGrey),
           ),
         ],
       ),
@@ -197,10 +197,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
             const SizedBox(height: 24),
             const Text(
               'Błąd ładowania ramówki',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
@@ -262,9 +259,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
           ),
           _buildProgramsList(provider),
           // 🔥 DODATKOWY PADDING NA DOLE
-          const SliverToBoxAdapter(
-            child: SizedBox(height: 100),
-          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
     );
@@ -292,18 +287,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
             const SizedBox(height: 24),
             const Text(
               'Brak programów w ramówce',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             const Text(
               'Sprawdź konfigurację Google Sheets lub spróbuj później',
-              style: TextStyle(
-                fontSize: 14,
-                color: ThemeConfig.mediumGrey,
-              ),
+              style: TextStyle(fontSize: 14, color: ThemeConfig.mediumGrey),
               textAlign: TextAlign.center,
             ),
           ],
@@ -317,23 +306,23 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              ThemeConfig.primaryOrange,
-              ThemeConfig.primaryOrange.withOpacity(0.8),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: ThemeConfig.primaryOrange.withOpacity(0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
+        gradient: LinearGradient(
+          colors: [
+            ThemeConfig.primaryOrange,
+            ThemeConfig.primaryOrange.withOpacity(0.8),
           ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: ThemeConfig.primaryOrange.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Column(
         children: [
           Row(
@@ -367,7 +356,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
                 child: _buildStatItem(
                   'Tydzień',
                   provider.selectedWeek.replaceAll('Tydzień ', ''),
-                  provider.selectedWeek == 'Tydzień A' ? Icons.looks_one : Icons.looks_two,
+                  provider.selectedWeek == 'Tydzień A'
+                      ? Icons.looks_one
+                      : Icons.looks_two,
                 ),
               ),
             ],
@@ -385,11 +376,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
   Widget _buildStatItem(String label, String value, IconData icon) {
     return Column(
       children: [
-        Icon(
-          icon,
-          color: Colors.white,
-          size: 20,
-        ),
+        Icon(icon, color: Colors.white, size: 20),
         const SizedBox(height: 6),
         Text(
           value,
@@ -401,10 +388,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
         ),
         Text(
           label,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 10,
-          ),
+          style: const TextStyle(color: Colors.white70, fontSize: 10),
         ),
       ],
     );
@@ -413,93 +397,90 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
   Widget _buildCurrentProgramHeader(ScheduleProvider provider) {
     final currentProgram = provider.currentProgram;
 
-    if (currentProgram == null) return const SizedBox.shrink();
+    if (currentProgram == null) {
+      return const SizedBox.shrink();
+    }
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Card(
-          color: ThemeConfig.successGreen,
-          elevation: 8, // 🔥 PODWYŻSZONA ELEVACJA DLA LIVE PROGRAMU
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.radio,
-                    color: Colors.white,
-                    size: 24,
-                  ),
+        color: ThemeConfig.successGreen,
+        elevation: 8, // 🔥 PODWYŻSZONA ELEVACJA DLA LIVE PROGRAMU
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Text(
-                            'TERAZ NA ANTENIE',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          // 🔥 ANIMOWANA KROPKA LIVE
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.red.withOpacity(0.6),
-                                  blurRadius: 4,
-                                  spreadRadius: 1,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        currentProgram.title,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      if (currentProgram.hosts?.isNotEmpty == true)
-                        Text(
-                          currentProgram.hosts!,
-                          style: const TextStyle(
+                child: const Icon(Icons.radio, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Text(
+                          'TERAZ NA ANTENIE',
+                          style: TextStyle(
                             color: Colors.white70,
-                            fontSize: 14,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                    ],
-                  ),
+                        const SizedBox(width: 8),
+                        // 🔥 ANIMOWANA KROPKA LIVE
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.red.withOpacity(0.6),
+                                blurRadius: 4,
+                                spreadRadius: 1,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      currentProgram.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (currentProgram.hosts?.isNotEmpty == true)
+                      Text(
+                        currentProgram.hosts!,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                      ),
+                  ],
                 ),
-                Text(
-                  currentProgram.timeRange,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
+              ),
+              Text(
+                currentProgram.timeRange,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -511,16 +492,13 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-              (context, index) {
-            final program = programs[index];
-            return ProgramCard(
-              program: program,
-              isCurrentlyPlaying: provider.isProgramCurrentlyPlaying(program),
-            );
-          },
-          childCount: programs.length,
-        ),
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final program = programs[index];
+          return ProgramCard(
+            program: program,
+            isCurrentlyPlaying: provider.isProgramCurrentlyPlaying(program),
+          );
+        }, childCount: programs.length),
       ),
     );
   }
@@ -544,7 +522,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
 
         return FloatingActionButton(
           onPressed: () {
-            _refreshController.forward().then((_) => _refreshController.reset());
+            _refreshController.forward().then(
+              (_) => _refreshController.reset(),
+            );
             provider.refresh();
           },
           tooltip: 'Odśwież ramówkę',
@@ -569,17 +549,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
         padding: EdgeInsets.zero,
         children: [
           const DrawerHeader(
-            decoration: BoxDecoration(
-              color: ThemeConfig.primaryOrange,
-            ),
+            decoration: BoxDecoration(color: ThemeConfig.primaryOrange),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.radio,
-                  color: Colors.white,
-                  size: 48,
-                ),
+                Icon(Icons.radio, color: Colors.white, size: 48),
                 SizedBox(height: 16),
                 Text(
                   'Ramówka Radiowa',
@@ -591,10 +565,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
                 ),
                 Text(
                   'Profesjonalna aplikacja ramówki',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
                 ),
               ],
             ),
@@ -647,7 +618,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
               return ListTile(
                 leading: Icon(
                   Icons.radio,
-                  color: hasLiveProgram ? ThemeConfig.successGreen : ThemeConfig.mediumGrey,
+                  color: hasLiveProgram
+                      ? ThemeConfig.successGreen
+                      : ThemeConfig.mediumGrey,
                 ),
                 title: Text(
                   hasLiveProgram ? 'Przejdź do Live' : 'Brak Live programu',
@@ -698,12 +671,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8),
-            Text('Profesjonalna aplikacja do zarządzania ramówką radiową z integracją Google Sheets.'),
-            SizedBox(height: 16),
             Text(
-              'Funkcje:',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              'Profesjonalna aplikacja do zarządzania ramówką radiową z integracją Google Sheets.',
             ),
+            SizedBox(height: 16),
+            Text('Funkcje:', style: TextStyle(fontWeight: FontWeight.bold)),
             Text('• Integracja z Google Sheets'),
             Text('• Auto-scroll do Live programu'),
             Text('• Przełączanie między tygodniami A/B'),
@@ -805,7 +777,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Wyczyść cache'),
-        content: const Text('Czy na pewno chcesz wyczyścić zapisane dane? Aplikacja pobierze je ponownie z Google Sheets.'),
+        content: const Text(
+          'Czy na pewno chcesz wyczyścić zapisane dane? Aplikacja pobierze je ponownie z Google Sheets.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -845,7 +819,11 @@ class _StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => height;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return child;
   }
 
