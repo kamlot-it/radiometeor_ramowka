@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../providers/schedule_provider.dart';
 import '../widgets/program_card.dart';
 import '../widgets/week_selector.dart';
+import '../widgets/day_selector.dart';
 import '../../config/theme_config.dart';
 
 class ScheduleScreen extends StatefulWidget {
@@ -46,7 +47,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
 
   // 🔥 NOWA METODA AUTO-SCROLL DO LIVE PROGRAMU
   void _scrollToLiveProgram(ScheduleProvider provider) {
-    final programs = provider.programs;
+    final programs = provider.programsForSelectedDay;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_scrollController.hasClients) return;
 
@@ -59,7 +60,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
 
         // Wysokość jednej karty programu (szacunkowo)
         const itemHeight = 120.0;
-        const headerHeight = 200.0; // Wysokość stats header
+        const headerHeight = 260.0; // Wysokość sklejonych nagłówków
 
         // Oblicz pozycję scroll - wyśrodkuj live program
         final screenHeight = MediaQuery.of(context).size.height;
@@ -140,7 +141,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
           case ScheduleState.loaded:
           case ScheduleState.refreshing:
           // 🔥 AUTO-SCROLL PO ZAŁADOWANIU DANYCH
-            if (provider.programs.isNotEmpty) {
+            if (provider.programsForSelectedDay.isNotEmpty) {
               _scrollToLiveProgram(provider);
             }
             return _buildLoadedState(provider);
@@ -245,8 +246,20 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
       child: CustomScrollView(
         controller: _scrollController, // 🔥 PODŁĄCZONY SCROLL CONTROLLER
         slivers: [
-          _buildStatsHeader(provider),
-          _buildCurrentProgramHeader(provider),
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _StickyHeaderDelegate(
+              child: _buildStatsHeader(provider),
+              height: 140,
+            ),
+          ),
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _StickyHeaderDelegate(
+              child: _buildCurrentProgramHeader(provider),
+              height: provider.currentProgram != null ? 100 : 0,
+            ),
+          ),
           _buildProgramsList(provider),
           // 🔥 DODATKOWY PADDING NA DOLE
           const SliverToBoxAdapter(
@@ -300,11 +313,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
   }
 
   Widget _buildStatsHeader(ScheduleProvider provider) {
-    return SliverToBoxAdapter(
-      child: Container(
-        margin: const EdgeInsets.all(16),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
               ThemeConfig.primaryOrange,
@@ -322,42 +334,50 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
             ),
           ],
         ),
-        child: Row(
-          children: [
-            Expanded(
-              child: _buildStatItem(
-                'Programy',
-                provider.totalPrograms.toString(),
-                Icons.radio,
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatItem(
+                  'Programy',
+                  provider.totalPrograms.toString(),
+                  Icons.radio,
+                ),
               ),
-            ),
-            Container(
-              width: 1,
-              height: 40,
-              color: Colors.white.withOpacity(0.3),
-            ),
-            Expanded(
-              child: _buildStatItem(
-                'Czas antenowy',
-                provider.totalDuration,
-                Icons.schedule,
+              Container(
+                width: 1,
+                height: 40,
+                color: Colors.white.withOpacity(0.3),
               ),
-            ),
-            Container(
-              width: 1,
-              height: 40,
-              color: Colors.white.withOpacity(0.3),
-            ),
-            // 🔥 DODATKOWA STATYSTYKA - AKTUALNY TYDZIEŃ
-            Expanded(
-              child: _buildStatItem(
-                'Tydzień',
-                provider.selectedWeek.replaceAll('Tydzień ', ''),
-                provider.selectedWeek == 'Tydzień A' ? Icons.looks_one : Icons.looks_two,
+              Expanded(
+                child: _buildStatItem(
+                  'Czas antenowy',
+                  provider.totalDuration,
+                  Icons.schedule,
+                ),
               ),
-            ),
-          ],
-        ),
+              Container(
+                width: 1,
+                height: 40,
+                color: Colors.white.withOpacity(0.3),
+              ),
+              // 🔥 DODATKOWA STATYSTYKA - AKTUALNY TYDZIEŃ
+              Expanded(
+                child: _buildStatItem(
+                  'Tydzień',
+                  provider.selectedWeek.replaceAll('Tydzień ', ''),
+                  provider.selectedWeek == 'Tydzień A' ? Icons.looks_one : Icons.looks_two,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          DaySelector(
+            selectedDay: provider.selectedDay,
+            onDayChanged: provider.changeDay,
+          ),
+        ],
       ),
     );
   }
@@ -393,12 +413,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
   Widget _buildCurrentProgramHeader(ScheduleProvider provider) {
     final currentProgram = provider.currentProgram;
 
-    if (currentProgram == null) return const SliverToBoxAdapter(child: SizedBox.shrink());
+    if (currentProgram == null) return const SizedBox.shrink();
 
-    return SliverToBoxAdapter(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Card(
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Card(
           color: ThemeConfig.successGreen,
           elevation: 8, // 🔥 PODWYŻSZONA ELEVACJA DLA LIVE PROGRAMU
           child: Padding(
@@ -488,18 +507,19 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
   }
 
   Widget _buildProgramsList(ScheduleProvider provider) {
+    final programs = provider.programsForSelectedDay;
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
               (context, index) {
-            final program = provider.programs[index];
+            final program = programs[index];
             return ProgramCard(
               program: program,
               isCurrentlyPlaying: provider.isProgramCurrentlyPlaying(program),
             );
           },
-          childCount: provider.programs.length,
+          childCount: programs.length,
         ),
       ),
     );
@@ -809,6 +829,29 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
         ],
       ),
     );
+  }
+}
+
+class _StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final Widget child;
+  final double height;
+
+  _StickyHeaderDelegate({required this.child, required this.height});
+
+  @override
+  double get minExtent => height;
+
+  @override
+  double get maxExtent => height;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return child;
+  }
+
+  @override
+  bool shouldRebuild(covariant _StickyHeaderDelegate oldDelegate) {
+    return false;
   }
 }
 

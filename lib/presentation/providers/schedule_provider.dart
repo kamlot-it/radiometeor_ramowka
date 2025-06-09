@@ -10,6 +10,7 @@ class ScheduleProvider extends ChangeNotifier {
   ScheduleState _state = ScheduleState.initial;
   List<Program> _programs = [];
   String _selectedWeek = 'Tydzień B'; // Domyślnie Tydzień B
+  late String _selectedDay; // Aktualnie wybrany dzień tygodnia
   late String _currentWeek; // Obliczony tydzień dla zaznaczania "na żywo"
   String? _errorMessage;
   DateTime? _lastUpdated;
@@ -19,7 +20,7 @@ class ScheduleProvider extends ChangeNotifier {
   ScheduleState get state => _state;
   List<Program> get programs => _programs;
   String get selectedWeek => _selectedWeek; // Przywrócone selectedWeek
-  String get selectedDay => _selectedWeek; // Kompatybilność wsteczna
+  String get selectedDay => _selectedDay;
   String get currentWeek => _currentWeek;
   bool get isCurrentWeekSelected => _selectedWeek == _currentWeek;
   String? get errorMessage => _errorMessage;
@@ -28,6 +29,15 @@ class ScheduleProvider extends ChangeNotifier {
 
   // Dostępne tygodnie
   List<String> get availableWeeks => ['Tydzień A', 'Tydzień B'];
+  List<String> get availableDays => [
+        'Poniedziałek',
+        'Wtorek',
+        'Środa',
+        'Czwartek',
+        'Piątek',
+        'Sobota',
+        'Niedziela'
+      ];
 
   // Computed properties
   Program? get currentProgram {
@@ -35,6 +45,10 @@ class ScheduleProvider extends ChangeNotifier {
     return _programs
         .where((program) => program.isCurrentlyPlaying)
         .firstOrNull;
+  }
+
+  List<Program> get programsForSelectedDay {
+    return _programs.where((p) => p.day == _selectedDay).toList();
   }
 
   List<Program> get todayPrograms {
@@ -100,6 +114,7 @@ class ScheduleProvider extends ChangeNotifier {
 
   Future<void> _initialize() async {
     _calculateCurrentWeek(); // Ustal aktualny tydzień
+    _selectedDay = _getCurrentDayName();
     await _loadCachedData();
     await loadSchedule();
     _isInitialized = true;
@@ -166,9 +181,11 @@ class ScheduleProvider extends ChangeNotifier {
     }
   }
 
-  // Kompatybilność wsteczna
   Future<void> changeDay(String day) async {
-    await changeWeek(day);
+    if (availableDays.contains(day) && day != _selectedDay) {
+      _selectedDay = day;
+      notifyListeners();
+    }
   }
 
   Future<void> refresh() async {
