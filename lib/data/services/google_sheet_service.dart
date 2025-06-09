@@ -1,0 +1,81 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:csv/csv.dart';
+import '../models/program.dart';
+
+class GoogleSheetService {
+  static const sheetUrls = {
+    'Tydzień A': 'https://docs.google.com/spreadsheets/d/1nx3iG3qNFwYSr0Uj44M8OPZKliKeLz0R8s6QzJU22ao/gviz/tq?tqx=out:csv&sheet=Tydzień A',
+    'Tydzień B': 'https://docs.google.com/spreadsheets/d/1nx3iG3qNFwYSr0Uj44M8OPZKliKeLz0R8s6QzJU22ao/gviz/tq?tqx=out:csv&sheet=Tydzień B',
+  };
+
+  static Future<List<Program>> fetchSchedule(String week) async {
+    final url = sheetUrls[week];
+    if (url == null) throw Exception('Invalid week: $week');
+
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load sheet');
+    }
+
+    final csvRaw = const Utf8Decoder().convert(response.bodyBytes);
+    final csvData = const CsvToListConverter().convert(csvRaw, eol: '\n');
+
+    if (csvData.isEmpty) return [];
+
+    final headers = csvData.first.cast<String>();
+    final godzinaIndex = headers.indexWhere((h) => h.trim().toLowerCase() == 'godzina');
+    if (godzinaIndex == -1) {
+      throw const FormatException('Brak kolumny Godzina w arkuszu');
+    }
+
+    final startTimes = <String>[];
+    final rows = <List<dynamic>>[];
+    for (int i = 1; i < csvData.length; i++) {
+      final row = csvData[i];
+      if (row.isEmpty) continue;
+      startTimes.add(row[godzinaIndex].toString());
+      rows.add(row);
+    }
+
+    final programs = <Program>[];
+    for (int i = 0; i < rows.length; i++) {
+      final row = rows[i];
+      final startTime = startTimes[i];
+      final endTime = i < startTimes.length - 1 ? startTimes[i + 1] : '00:00';
+      for (int j = godzinaIndex + 1; j < headers.length; j++) {
+        final day = headers[j];
+        final cell = j < row.length ? row[j]?.toString().trim() : '';
+        if (cell != null && cell.isNotEmpty) {
+          var title = cell;
+          String? hosts;
+          if (cell.contains('–')) {
+            final parts = cell.split('–');
+            title = parts[0].trim();
+            hosts = parts.length > 1 ? parts[1].trim() : null;
+          }
+          programs.add(Program(
+            day: day,
+            startTime: startTime,
+            endTime: endTime,
+            title: title,
+            hosts: hosts,
+            categoryName: 'Program',
+            categoryColorHex: '#FF6600',
+          ));
+        }
+      }
+    }
+
+    return programs;
+  }
+
+  static Future<bool> testConnection() async {
+    try {
+      final response = await http.get(Uri.parse(sheetUrls.values.first));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+}
