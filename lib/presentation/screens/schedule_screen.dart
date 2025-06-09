@@ -45,12 +45,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
   }
 
   // 🔥 NOWA METODA AUTO-SCROLL DO LIVE PROGRAMU
-  void _scrollToLiveProgram(List programs) {
+  void _scrollToLiveProgram(ScheduleProvider provider) {
+    final programs = provider.programs;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_scrollController.hasClients) return;
 
       // Znajdź indeks aktualnie granego programu
-      final liveIndex = programs.indexWhere((program) => program.isCurrentlyPlaying);
+      final liveIndex =
+          programs.indexWhere((program) => provider.isProgramCurrentlyPlaying(program));
 
       if (liveIndex != -1) {
         debugPrint('🎯 Przewijam do Live programu na pozycji: $liveIndex');
@@ -139,7 +141,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
           case ScheduleState.refreshing:
           // 🔥 AUTO-SCROLL PO ZAŁADOWANIU DANYCH
             if (provider.programs.isNotEmpty) {
-              _scrollToLiveProgram(provider.programs);
+              _scrollToLiveProgram(provider);
             }
             return _buildLoadedState(provider);
 
@@ -494,7 +496,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
             final program = provider.programs[index];
             return ProgramCard(
               program: program,
-              isCurrentlyPlaying: program.isCurrentlyPlaying,
+              isCurrentlyPlaying: provider.isProgramCurrentlyPlaying(program),
             );
           },
           childCount: provider.programs.length,
@@ -633,10 +635,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> with TickerProviderStat
                     color: hasLiveProgram ? null : ThemeConfig.mediumGrey,
                   ),
                 ),
-                onTap: hasLiveProgram ? () {
-                  Navigator.pop(context);
-                  _scrollToLiveProgram(provider.programs);
-                } : null,
+                onTap: hasLiveProgram
+                    ? () {
+                        Navigator.pop(context);
+                        _scrollToLiveProgram(provider);
+                      }
+                    : null,
               );
             },
           ),

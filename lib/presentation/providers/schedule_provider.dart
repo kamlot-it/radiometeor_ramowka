@@ -9,7 +9,8 @@ enum ScheduleState { initial, loading, loaded, error, refreshing }
 class ScheduleProvider extends ChangeNotifier {
   ScheduleState _state = ScheduleState.initial;
   List<Program> _programs = [];
-  String _selectedWeek = 'Tydzień B'; // Domyślnie Tydzień B zgodnie z Twoją sugestią
+  String _selectedWeek = 'Tydzień B'; // Domyślnie Tydzień B
+  late String _currentWeek; // Obliczony tydzień dla zaznaczania "na żywo"
   String? _errorMessage;
   DateTime? _lastUpdated;
   bool _isInitialized = false;
@@ -19,6 +20,8 @@ class ScheduleProvider extends ChangeNotifier {
   List<Program> get programs => _programs;
   String get selectedWeek => _selectedWeek; // Przywrócone selectedWeek
   String get selectedDay => _selectedWeek; // Kompatybilność wsteczna
+  String get currentWeek => _currentWeek;
+  bool get isCurrentWeekSelected => _selectedWeek == _currentWeek;
   String? get errorMessage => _errorMessage;
   DateTime? get lastUpdated => _lastUpdated;
   bool get isInitialized => _isInitialized;
@@ -28,7 +31,10 @@ class ScheduleProvider extends ChangeNotifier {
 
   // Computed properties
   Program? get currentProgram {
-    return _programs.where((program) => program.isCurrentlyPlaying).firstOrNull;
+    if (!isCurrentWeekSelected) return null;
+    return _programs
+        .where((program) => program.isCurrentlyPlaying)
+        .firstOrNull;
   }
 
   List<Program> get todayPrograms {
@@ -75,6 +81,10 @@ class ScheduleProvider extends ChangeNotifier {
     return '${hours}h ${minutes}min';
   }
 
+  bool isProgramCurrentlyPlaying(Program program) {
+    return isCurrentWeekSelected && program.isCurrentlyPlaying;
+  }
+
   String _getCurrentDayName() {
     final now = DateTime.now();
     const days = [
@@ -89,8 +99,8 @@ class ScheduleProvider extends ChangeNotifier {
   }
 
   Future<void> _initialize() async {
+    _calculateCurrentWeek(); // Ustal aktualny tydzień
     await _loadCachedData();
-    _calculateCurrentWeek(); // Oblicz aktualny tydzień
     await loadSchedule();
     _isInitialized = true;
     notifyListeners();
@@ -105,10 +115,10 @@ class ScheduleProvider extends ChangeNotifier {
     final dayOfYear = now.difference(firstDayOfYear).inDays + 1;
     final weekNumber = (dayOfYear / 7).ceil();
 
-    // Tydzień B dla parzystych, Tydzień A dla nieparzystych (zgodnie z Twoją sugestią)
-    _selectedWeek = weekNumber % 2 == 0 ? 'Tydzień B' : 'Tydzień A';
+    // Tydzień B dla parzystych, Tydzień A dla nieparzystych
+    _currentWeek = weekNumber % 2 == 0 ? 'Tydzień B' : 'Tydzień A';
 
-    debugPrint('📅 Obliczony tydzień: $_selectedWeek (tydzień $weekNumber w roku)');
+    debugPrint('📅 Obliczony tydzień: $_currentWeek (tydzień $weekNumber w roku)');
   }
 
   Future<void> loadSchedule({bool showLoading = true}) async {
@@ -192,7 +202,7 @@ class ScheduleProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      _selectedWeek = prefs.getString('selectedWeek') ?? _selectedWeek;
+      _selectedWeek = prefs.getString('selectedWeek') ?? _currentWeek;
 
       final cacheKey = 'schedule_${_selectedWeek.replaceAll(' ', '_')}';
       final cachedJson = prefs.getString(cacheKey);
