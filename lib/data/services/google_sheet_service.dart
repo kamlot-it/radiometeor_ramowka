@@ -39,14 +39,12 @@ class GoogleSheetService {
     }
 
     final programs = <Program>[];
-orkj1i-codex/open-the-app
     final lastIndexByDay = <String, int>{};
-master
+
     for (int i = 0; i < rows.length; i++) {
       final row = rows[i];
       final startTime = startTimes[i];
       final endTime = i < startTimes.length - 1 ? startTimes[i + 1] : '00:00';
-orkj1i-codex/open-the-app
 
       for (int j = godzinaIndex + 1; j < headers.length; j++) {
         final day = headers[j];
@@ -130,7 +128,6 @@ orkj1i-codex/open-the-app
     // Nie usuwamy identycznych wpisów pomiędzy różnymi dniami tygodnia,
     // aby każdy dzień zachował swoją odrębną ramówkę.
     return merged;
-master
   }
 
   static Future<bool> testConnection() async {
