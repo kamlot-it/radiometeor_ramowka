@@ -39,35 +39,98 @@ class GoogleSheetService {
     }
 
     final programs = <Program>[];
+orkj1i-codex/open-the-app
+    final lastIndexByDay = <String, int>{};
+master
     for (int i = 0; i < rows.length; i++) {
       final row = rows[i];
       final startTime = startTimes[i];
       final endTime = i < startTimes.length - 1 ? startTimes[i + 1] : '00:00';
+orkj1i-codex/open-the-app
+
       for (int j = godzinaIndex + 1; j < headers.length; j++) {
         final day = headers[j];
         final cell = j < row.length ? row[j]?.toString().trim() : '';
-        if (cell != null && cell.isNotEmpty) {
-          var title = cell;
-          String? hosts;
-          if (cell.contains('–')) {
-            final parts = cell.split('–');
-            title = parts[0].trim();
-            hosts = parts.length > 1 ? parts[1].trim() : null;
-          }
-          programs.add(Program(
-            day: day,
-            startTime: startTime,
-            endTime: endTime,
-            title: title,
-            hosts: hosts,
-            categoryName: 'Program',
-            categoryColorHex: '#FF6600',
-          ));
+
+        if (cell == null || cell.isEmpty) {
+          lastIndexByDay.remove(day);
+          continue;
         }
+
+        var title = cell;
+        String? hosts;
+        if (cell.contains('–')) {
+          final parts = cell.split('–');
+          title = parts[0].trim();
+          hosts = parts.length > 1 ? parts[1].trim() : null;
+        }
+
+        final prevIndex = lastIndexByDay[day];
+        if (prevIndex != null) {
+          final prev = programs[prevIndex];
+          if (prev.title == title && (prev.hosts ?? '') == (hosts ?? '') &&
+              prev.endTime == startTime) {
+            programs[prevIndex] = Program(
+              day: day,
+              startTime: prev.startTime,
+              endTime: endTime,
+              title: title,
+              hosts: hosts,
+              categoryName: prev.categoryName,
+              categoryColorHex: prev.categoryColorHex,
+            );
+            lastIndexByDay[day] = prevIndex;
+            continue;
+          }
+        }
+
+        final program = Program(
+          day: day,
+          startTime: startTime,
+          endTime: endTime,
+          title: title,
+          hosts: hosts,
+          categoryName: 'Program',
+          categoryColorHex: '#FF6600',
+        );
+        programs.add(program);
+        lastIndexByDay[day] = programs.length - 1;
       }
     }
 
-    return programs;
+    // Konsolidacja kolejnych identycznych wpisów na wypadek drobnych różnic w danych
+    List<Program> merged = [];
+    Program? last;
+    String normalize(String input) =>
+        input.toLowerCase().trim().replaceAll(RegExp(r'[–-]'), '-');
+
+    for (final p in programs) {
+      if (last != null &&
+          last.day == p.day &&
+          normalize(last.title) == normalize(p.title) &&
+          (last.hosts ?? '').trim() == (p.hosts ?? '').trim() &&
+          last.endTime == p.startTime) {
+        last = Program(
+          day: last.day,
+          startTime: last.startTime,
+          endTime: p.endTime,
+          title: last.title,
+          hosts: last.hosts,
+          categoryName: last.categoryName,
+          categoryColorHex: last.categoryColorHex,
+        );
+        merged[merged.length - 1] = last;
+      } else {
+        merged.add(p);
+        last = p;
+      }
+    }
+
+    // Zwracamy wynik po konsolidacji w obrębie pojedynczego dnia.
+    // Nie usuwamy identycznych wpisów pomiędzy różnymi dniami tygodnia,
+    // aby każdy dzień zachował swoją odrębną ramówkę.
+    return merged;
+master
   }
 
   static Future<bool> testConnection() async {
