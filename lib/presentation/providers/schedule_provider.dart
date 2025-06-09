@@ -9,7 +9,9 @@ enum ScheduleState { initial, loading, loaded, error, refreshing }
 class ScheduleProvider extends ChangeNotifier {
   ScheduleState _state = ScheduleState.initial;
   List<Program> _programs = [];
-  String _selectedWeek = 'Tydzień B'; // Domyślnie Tydzień B zgodnie z Twoją sugestią
+  String _selectedWeek = 'Tydzień B'; // Domyślnie Tydzień B
+  late String _selectedDay; // Aktualnie wybrany dzień tygodnia
+  late String _currentWeek; // Obliczony tydzień dla zaznaczania "na żywo"
   String? _errorMessage;
   DateTime? _lastUpdated;
   bool _isInitialized = false;
@@ -18,17 +20,35 @@ class ScheduleProvider extends ChangeNotifier {
   ScheduleState get state => _state;
   List<Program> get programs => _programs;
   String get selectedWeek => _selectedWeek; // Przywrócone selectedWeek
-  String get selectedDay => _selectedWeek; // Kompatybilność wsteczna
+  String get selectedDay => _selectedDay;
+  String get currentWeek => _currentWeek;
+  bool get isCurrentWeekSelected => _selectedWeek == _currentWeek;
   String? get errorMessage => _errorMessage;
   DateTime? get lastUpdated => _lastUpdated;
   bool get isInitialized => _isInitialized;
 
   // Dostępne tygodnie
   List<String> get availableWeeks => ['Tydzień A', 'Tydzień B'];
+  List<String> get availableDays => [
+        'Poniedziałek',
+        'Wtorek',
+        'Środa',
+        'Czwartek',
+        'Piątek',
+        'Sobota',
+        'Niedziela'
+      ];
 
   // Computed properties
   Program? get currentProgram {
-    return _programs.where((program) => program.isCurrentlyPlaying).firstOrNull;
+    if (!isCurrentWeekSelected) return null;
+    return _programs
+        .where((program) => program.isCurrentlyPlaying)
+        .firstOrNull;
+  }
+
+  List<Program> get programsForSelectedDay {
+    return _programs.where((p) => p.day == _selectedDay).toList();
   }
 
   List<Program> get todayPrograms {
@@ -75,6 +95,10 @@ class ScheduleProvider extends ChangeNotifier {
     return '${hours}h ${minutes}min';
   }
 
+  bool isProgramCurrentlyPlaying(Program program) {
+    return isCurrentWeekSelected && program.isCurrentlyPlaying;
+  }
+
   String _getCurrentDayName() {
     final now = DateTime.now();
     const days = [
@@ -89,8 +113,9 @@ class ScheduleProvider extends ChangeNotifier {
   }
 
   Future<void> _initialize() async {
+    _calculateCurrentWeek(); // Ustal aktualny tydzień
+    _selectedDay = _getCurrentDayName();
     await _loadCachedData();
-    _calculateCurrentWeek(); // Oblicz aktualny tydzień
     await loadSchedule();
     _isInitialized = true;
     notifyListeners();
@@ -105,10 +130,10 @@ class ScheduleProvider extends ChangeNotifier {
     final dayOfYear = now.difference(firstDayOfYear).inDays + 1;
     final weekNumber = (dayOfYear / 7).ceil();
 
-    // Tydzień B dla parzystych, Tydzień A dla nieparzystych (zgodnie z Twoją sugestią)
-    _selectedWeek = weekNumber % 2 == 0 ? 'Tydzień B' : 'Tydzień A';
+    // Tydzień B dla parzystych, Tydzień A dla nieparzystych
+    _currentWeek = weekNumber % 2 == 0 ? 'Tydzień B' : 'Tydzień A';
 
-    debugPrint('📅 Obliczony tydzień: $_selectedWeek (tydzień $weekNumber w roku)');
+    debugPrint('📅 Obliczony tydzień: $_currentWeek (tydzień $weekNumber w roku)');
   }
 
   Future<void> loadSchedule({bool showLoading = true}) async {
@@ -156,9 +181,11 @@ class ScheduleProvider extends ChangeNotifier {
     }
   }
 
-  // Kompatybilność wsteczna
   Future<void> changeDay(String day) async {
-    await changeWeek(day);
+    if (availableDays.contains(day) && day != _selectedDay) {
+      _selectedDay = day;
+      notifyListeners();
+    }
   }
 
   Future<void> refresh() async {
@@ -192,7 +219,7 @@ class ScheduleProvider extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      _selectedWeek = prefs.getString('selectedWeek') ?? _selectedWeek;
+      _selectedWeek = prefs.getString('selectedWeek') ?? _currentWeek;
 
       final cacheKey = 'schedule_${_selectedWeek.replaceAll(' ', '_')}';
       final cachedJson = prefs.getString(cacheKey);
