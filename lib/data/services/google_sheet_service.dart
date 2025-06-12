@@ -51,7 +51,19 @@ class GoogleSheetService {
         final cell = j < row.length ? row[j]?.toString().trim() : '';
 
         if (cell == null || cell.isEmpty) {
-          lastIndexByDay.remove(day);
+          final prevIndex = lastIndexByDay[day];
+          if (prevIndex != null) {
+            final prev = programs[prevIndex];
+            programs[prevIndex] = Program(
+              day: prev.day,
+              startTime: prev.startTime,
+              endTime: endTime,
+              title: prev.title,
+              hosts: prev.hosts,
+              categoryName: prev.categoryName,
+              categoryColorHex: prev.categoryColorHex,
+            );
+          }
           continue;
         }
 
