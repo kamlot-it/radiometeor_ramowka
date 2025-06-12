@@ -54,16 +54,18 @@ class GoogleSheetService {
           final prevIndex = lastIndexByDay[day];
           if (prevIndex != null) {
             final prev = programs[prevIndex];
-            programs.add(Program(
-              day: prev.day,
-              startTime: startTime,
-              endTime: endTime,
-              title: prev.title,
-              hosts: prev.hosts,
-              categoryName: prev.categoryName,
-              categoryColorHex: prev.categoryColorHex,
-            ));
-            lastIndexByDay[day] = programs.length - 1;
+            if (prev.endTime == startTime) {
+              // extend the previous program across this empty slot
+              programs[prevIndex] = Program(
+                day: prev.day,
+                startTime: prev.startTime,
+                endTime: endTime,
+                title: prev.title,
+                hosts: prev.hosts,
+                categoryName: prev.categoryName,
+                categoryColorHex: prev.categoryColorHex,
+              );
+            }
           }
           continue;
         }
