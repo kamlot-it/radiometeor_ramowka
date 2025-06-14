@@ -175,6 +175,9 @@ class _ScheduleScreenState extends State<ScheduleScreen>
     );
   }
 
+  Widget _buildProgramsList(ScheduleProvider provider) {
+  }
+
   Widget _buildErrorState(ScheduleProvider provider) {
     return Center(
       child: Padding(
@@ -247,7 +250,7 @@ class _ScheduleScreenState extends State<ScheduleScreen>
             pinned: true,
             delegate: _StickyHeaderDelegate(
               child: _buildStatsHeader(provider),
-              height: 180,
+              height: 100,
             ),
           ),
           SliverPersistentHeader(
@@ -325,76 +328,12 @@ class _ScheduleScreenState extends State<ScheduleScreen>
             ),
           ],
         ),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatItem(
-                  'Programy',
-                  provider.totalPrograms.toString(),
-                  Icons.radio,
-                ),
-              ),
-              Container(
-                width: 1,
-                height: 40,
-                color: Colors.white.withOpacity(0.3),
-              ),
-              Expanded(
-                child: _buildStatItem(
-                  'Czas antenowy',
-                  provider.totalDuration,
-                  Icons.schedule,
-                ),
-              ),
-              Container(
-                width: 1,
-                height: 40,
-                color: Colors.white.withOpacity(0.3),
-              ),
-              // 🔥 DODATKOWA STATYSTYKA - AKTUALNY TYDZIEŃ
-              Expanded(
-                child: _buildStatItem(
-                  'Tydzień',
-                  provider.selectedWeek.replaceAll('Tydzień ', ''),
-                  provider.selectedWeek == 'Tydzień A'
-                      ? Icons.looks_one
-                      : Icons.looks_two,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          DaySelector(
-            selectedDay: provider.selectedDay,
-            currentDay: provider.todayName,
-            onDayChanged: provider.changeDay,
-          ),
-        ],
-      ),
-      ),
-    );
-  }
-
-  Widget _buildStatItem(String label, String value, IconData icon) {
-    return Column(
-      children: [
-        Icon(icon, color: Colors.white, size: 20),
-        const SizedBox(height: 6),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+        child: DaySelector(
+          selectedDay: provider.selectedDay,
+          currentDay: provider.todayName,
+          onDayChanged: provider.changeDay,
         ),
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white70, fontSize: 10),
-        ),
-      ],
+      ),
     );
   }
 
@@ -410,11 +349,11 @@ class _ScheduleScreenState extends State<ScheduleScreen>
       child: Container(
         margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
         child: Card(
-        color: ThemeConfig.successGreen,
-        elevation: 8, // 🔥 PODWYŻSZONA ELEVACJA DLA LIVE PROGRAMU
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
+          color: ThemeConfig.successGreen,
+          elevation: 8, // 🔥 PODWYŻSZONA ELEVACJA DLA LIVE PROGRAMU
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
@@ -489,8 +428,8 @@ class _ScheduleScreenState extends State<ScheduleScreen>
             ],
           ),
         ),
-        ),
       ),
+    );
     );
   }
 

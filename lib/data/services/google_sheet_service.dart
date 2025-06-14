@@ -40,6 +40,8 @@ class GoogleSheetService {
 
     final programs = <Program>[];
     final lastIndexByDay = <String, int>{};
+    String normalize(String input) =>
+        input.toLowerCase().trim().replaceAll(RegExp(r'[–-]'), '-');
 
     for (int i = 0; i < rows.length; i++) {
       final row = rows[i];
@@ -51,7 +53,20 @@ class GoogleSheetService {
         final cell = j < row.length ? row[j]?.toString().trim() : '';
 
         if (cell == null || cell.isEmpty) {
-          lastIndexByDay.remove(day);
+          final prevIndex = lastIndexByDay[day];
+          if (prevIndex != null) {
+            final prev = programs[prevIndex];
+            // extend the previous program across this empty slot
+            programs[prevIndex] = Program(
+              day: prev.day,
+              startTime: prev.startTime,
+              endTime: endTime,
+              title: prev.title,
+              hosts: prev.hosts,
+              categoryName: prev.categoryName,
+              categoryColorHex: prev.categoryColorHex,
+            );
+          }
           continue;
         }
 
@@ -62,22 +77,24 @@ class GoogleSheetService {
           title = parts[0].trim();
           hosts = parts.length > 1 ? parts[1].trim() : null;
         }
+        title = title.trim();
+        hosts = hosts?.trim();
 
         final prevIndex = lastIndexByDay[day];
         if (prevIndex != null) {
           final prev = programs[prevIndex];
-          if (prev.title == title && (prev.hosts ?? '') == (hosts ?? '') &&
-              prev.endTime == startTime) {
+          final sameTitle = normalize(prev.title) == normalize(title);
+          final sameHosts = (prev.hosts ?? '').trim() == (hosts ?? '').trim();
+          if (sameTitle && sameHosts && prev.endTime == startTime) {
             programs[prevIndex] = Program(
               day: day,
               startTime: prev.startTime,
               endTime: endTime,
-              title: title,
-              hosts: hosts,
+              title: prev.title,
+              hosts: prev.hosts,
               categoryName: prev.categoryName,
               categoryColorHex: prev.categoryColorHex,
             );
-            lastIndexByDay[day] = prevIndex;
             continue;
           }
         }
@@ -96,11 +113,10 @@ class GoogleSheetService {
       }
     }
 
-    // Konsolidacja kolejnych identycznych wpisów na wypadek drobnych różnic w danych
+    // Merge consecutive entries that represent the same program
+    // so long shows like NOC spanning multiple hours appear once
     List<Program> merged = [];
     Program? last;
-    String normalize(String input) =>
-        input.toLowerCase().trim().replaceAll(RegExp(r'[–-]'), '-');
 
     for (final p in programs) {
       if (last != null &&
@@ -124,9 +140,6 @@ class GoogleSheetService {
       }
     }
 
-    // Zwracamy wynik po konsolidacji w obrębie pojedynczego dnia.
-    // Nie usuwamy identycznych wpisów pomiędzy różnymi dniami tygodnia,
-    // aby każdy dzień zachował swoją odrębną ramówkę.
     return merged;
   }
 
