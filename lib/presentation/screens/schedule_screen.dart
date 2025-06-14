@@ -247,7 +247,7 @@ class _ScheduleScreenState extends State<ScheduleScreen>
             pinned: true,
             delegate: _StickyHeaderDelegate(
               child: _buildStatsHeader(provider),
-              height: 180,
+              height: 100,
             ),
           ),
           SliverPersistentHeader(
@@ -325,76 +325,13 @@ class _ScheduleScreenState extends State<ScheduleScreen>
             ),
           ],
         ),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatItem(
-                  'Programy',
-                  provider.totalPrograms.toString(),
-                  Icons.radio,
-                ),
-              ),
-              Container(
-                width: 1,
-                height: 40,
-                color: Colors.white.withOpacity(0.3),
-              ),
-              Expanded(
-                child: _buildStatItem(
-                  'Czas antenowy',
-                  provider.totalDuration,
-                  Icons.schedule,
-                ),
-              ),
-              Container(
-                width: 1,
-                height: 40,
-                color: Colors.white.withOpacity(0.3),
-              ),
-              // 🔥 DODATKOWA STATYSTYKA - AKTUALNY TYDZIEŃ
-              Expanded(
-                child: _buildStatItem(
-                  'Tydzień',
-                  provider.selectedWeek.replaceAll('Tydzień ', ''),
-                  provider.selectedWeek == 'Tydzień A'
-                      ? Icons.looks_one
-                      : Icons.looks_two,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          DaySelector(
-            selectedDay: provider.selectedDay,
-            currentDay: provider.todayName,
-            onDayChanged: provider.changeDay,
-          ),
-        ],
+        child: DaySelector(
+          selectedDay: provider.selectedDay,
+          currentDay: provider.todayName,
+          onDayChanged: provider.changeDay,
+        ),
       ),
       ),
-    );
-  }
-
-  Widget _buildStatItem(String label, String value, IconData icon) {
-    return Column(
-      children: [
-        Icon(icon, color: Colors.white, size: 20),
-        const SizedBox(height: 6),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white70, fontSize: 10),
-        ),
-      ],
     );
   }
 
