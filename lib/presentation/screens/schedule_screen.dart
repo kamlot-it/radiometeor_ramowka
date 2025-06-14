@@ -171,6 +171,7 @@ class _ScheduleScreenState extends State<ScheduleScreen>
             style: TextStyle(fontSize: 16, color: ThemeConfig.mediumGrey),
           ),
         ],
+        ),
       ),
     );
   }
@@ -227,6 +228,7 @@ class _ScheduleScreenState extends State<ScheduleScreen>
               ],
             ),
           ],
+          ),
         ),
       ),
     );
@@ -331,7 +333,6 @@ class _ScheduleScreenState extends State<ScheduleScreen>
           onDayChanged: provider.changeDay,
         ),
       ),
-      ),
     );
   }
 
@@ -347,11 +348,11 @@ class _ScheduleScreenState extends State<ScheduleScreen>
       child: Container(
         margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
         child: Card(
-        color: ThemeConfig.successGreen,
-        elevation: 8, // 🔥 PODWYŻSZONA ELEVACJA DLA LIVE PROGRAMU
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
+          color: ThemeConfig.successGreen,
+          elevation: 8, // 🔥 PODWYŻSZONA ELEVACJA DLA LIVE PROGRAMU
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
@@ -425,7 +426,6 @@ class _ScheduleScreenState extends State<ScheduleScreen>
               ),
             ],
           ),
-        ),
         ),
       ),
     );
