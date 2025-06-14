@@ -40,6 +40,8 @@ class GoogleSheetService {
 
     final programs = <Program>[];
     final lastIndexByDay = <String, int>{};
+    String normalize(String input) =>
+        input.toLowerCase().trim().replaceAll(RegExp(r'[–-]'), '-');
 
     for (int i = 0; i < rows.length; i++) {
       final row = rows[i];
@@ -115,8 +117,6 @@ class GoogleSheetService {
     // so long shows like NOC spanning multiple hours appear once
     List<Program> merged = [];
     Program? last;
-    String normalize(String input) =>
-        input.toLowerCase().trim().replaceAll(RegExp(r'[–-]'), '-');
 
     for (final p in programs) {
       if (last != null &&

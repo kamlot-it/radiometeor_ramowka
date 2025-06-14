@@ -171,7 +171,6 @@ class _ScheduleScreenState extends State<ScheduleScreen>
             style: TextStyle(fontSize: 16, color: ThemeConfig.mediumGrey),
           ),
         ],
-        ),
       ),
     );
   }
@@ -228,7 +227,6 @@ class _ScheduleScreenState extends State<ScheduleScreen>
               ],
             ),
           ],
-          ),
         ),
       ),
     );
