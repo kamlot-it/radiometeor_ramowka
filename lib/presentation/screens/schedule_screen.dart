@@ -175,8 +175,6 @@ class _ScheduleScreenState extends State<ScheduleScreen>
     );
   }
 
-  Widget _buildProgramsList(ScheduleProvider provider) {
-  }
 
   Widget _buildErrorState(ScheduleProvider provider) {
     return Center(
